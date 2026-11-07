@@ -2,12 +2,13 @@ import SwiftUI
 
 struct Habit: Identifiable, Codable {
     let id: UUID
-    let titles: String
+    var titles: String
     var isCompleted: Bool
 }
 
 struct ContentView: View {
     
+    @State private var selectedHabit: Habit?
     @State private var newHabit = ""
     
     @State private var habits: [Habit] = [
@@ -120,6 +121,12 @@ struct ContentView: View {
                     .foregroundStyle(.white)
                     
                     Button {
+                        selectedHabit = habit
+                    } label: {
+                        Image(systemName: "pencil")
+                    }
+                    
+                    Button {
                         habits.removeAll { item in
                             item.id == habit.id
                         }
@@ -137,6 +144,19 @@ struct ContentView: View {
             }
         } .onAppear {
             loadHabits()
+        }
+        .sheet(item: $selectedHabit) { habit in
+            EditHabitView(habit: habit, onSave: { newTitle in
+                guard let index = habits.firstIndex(where: { item in
+                    item.id == habit.id
+                }) else {
+                    return
+                }
+                
+                habits[index].titles = newTitle
+                saveHabits()
+                selectedHabit = nil
+            })
         }
     }
 }
